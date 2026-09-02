@@ -78,6 +78,8 @@ services:
         value: 22.13.0
     routes:
       # SPA client-side routing — unmatched paths (e.g. /console/cases/123
-      # on a hard refresh) must serve index.html, not 404.
-      - source: /*
+      # on a hard refresh) must serve index.html, not 404. type: rewrite
+      # (not redirect) so the browser's URL bar doesn't change.
+      - type: rewrite
+        source: /*
         destination: /index.html
