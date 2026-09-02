@@ -4,9 +4,15 @@ import { PatientQueueStatus } from '@zaheri/types';
 
 let socket: Socket | null = null;
 
+// Local dev proxies /socket.io to the API (vite.config.ts), so a bare
+// namespace path connects to the current origin. In production the API is
+// a separate origin, so prefix the namespace with its full URL instead —
+// see VITE_API_BASE_URL in lib/api.ts and render.yaml.
+const API_ORIGIN = import.meta.env.VITE_API_BASE_URL || '';
+
 function getSocket(): Socket {
   if (!socket) {
-    socket = io('/queue');
+    socket = io(`${API_ORIGIN}/queue`);
   }
   return socket;
 }

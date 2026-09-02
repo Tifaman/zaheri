@@ -2,6 +2,12 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Read directly from process.env (not import.meta.env — that's only for
+// client code): Render injects build-time env vars this way, and it lets
+// the PWA cache rule below match the API's real origin in production
+// instead of always assuming same-origin '/api'.
+const apiBaseUrl = process.env.VITE_API_BASE_URL ?? '';
+
 export default defineConfig({
   plugins: [
     react(),
@@ -25,7 +31,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,ico}'],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.startsWith('/api'),
+            urlPattern: ({ url }) =>
+              apiBaseUrl ? url.origin === new URL(apiBaseUrl).origin : url.pathname.startsWith('/api'),
             handler: 'NetworkFirst',
             options: { cacheName: 'zaheri-api-cache' },
           },

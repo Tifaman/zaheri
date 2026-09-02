@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bullmq';
+import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { HospitalGatewayModule } from './hospital-gateway/hospital-gateway.module';
@@ -26,8 +27,19 @@ import { AnalyticsModule } from './analytics/analytics.module';
         if (!url) {
           throw new Error('REDIS_URL is not set (see .env.example)');
         }
-        const { hostname, port } = new URL(url);
-        return { connection: { host: hostname, port: Number(port) || 6379 } };
+        const parsed = new URL(url);
+        return {
+          connection: {
+            host: parsed.hostname,
+            port: Number(parsed.port) || 6379,
+            // Managed Redis (Render Key Value, Upstash, etc.) requires auth
+            // and, for external providers, TLS — a bare {host, port} works
+            // for a local unauthenticated dev Redis but silently fails auth
+            // against anything real, so pull these from the URL when present.
+            ...(parsed.password ? { password: parsed.password } : {}),
+            ...(parsed.protocol === 'rediss:' ? { tls: {} } : {}),
+          },
+        };
       },
     }),
     PrismaModule,
@@ -42,5 +54,6 @@ import { AnalyticsModule } from './analytics/analytics.module';
     ReceiptsModule,
     AnalyticsModule,
   ],
+  controllers: [AppController],
 })
 export class AppModule {}

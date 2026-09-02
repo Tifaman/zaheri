@@ -13,7 +13,11 @@ import {
   SymptomTrendsDto,
 } from '@zaheri/types';
 
-const API_BASE = '/api';
+// In local dev, '/api' is proxied to the API by vite.config.ts. In
+// production the frontend and API are deployed as separate services with
+// different origins, so VITE_API_BASE_URL (baked in at build time) points
+// straight at the API's public URL instead — see render.yaml.
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export class ApiError extends Error {
   constructor(
