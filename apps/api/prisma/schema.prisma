@@ -1,0 +1,172 @@
+// ZaHeri — Phase 0 + Phase 1 + Phase 2 + Phase 3 schema.
+// Minimise stored PHI: GoTHOMIS remains the clinical source of truth.
+// This schema stores orchestration/session state only, not clinical records.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum IntakeStatus {
+  PENDING
+  ROUTED
+  COMPLETED
+}
+
+enum UserRole {
+  PATIENT
+  CLINICIAN
+  ADMIN
+}
+
+// Only two dispositions exist, by design: there is no skip-the-doctor /
+// prescription-only path. Every non-emergency patient is routed to an
+// in-person doctor; red flags escalate to the EMD.
+enum Disposition {
+  SEE_DOCTOR
+  URGENT_NOW
+}
+
+// Declared RED before GREEN deliberately: CasesService sorts case lists by
+// `orderBy: { triageTag: 'asc' }`, and Postgres enum ordering follows
+// declaration order, so this ordering is what puts RED cases first.
+enum TriageTag {
+  RED
+  GREEN
+}
+
+// FHIR-ish: LabOrder ~ ServiceRequest, LabReport ~ DiagnosticReport.
+enum LabOrderStatus {
+  ORDERED
+  RESULTED
+}
+
+// Only two states, by design: a receipt is either still redeemable or it
+// has already been used. There is no "cancelled" or "expired" state yet —
+// add one deliberately if that becomes a real requirement, don't infer it.
+enum ReceiptStatus {
+  ISSUED
+  REDEEMED
+}
+
+model Patient {
+  id                 String   @id @default(uuid())
+  // External identifier looked up via IHospitalGateway; no name/DOB/etc.
+  // stored here — GoTHOMIS is the source of truth for clinical identity.
+  registrationNumber String   @unique
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  intakes Intake[]
+}
+
+model Intake {
+  id                 String       @id @default(uuid())
+  patient            Patient      @relation(fields: [patientId], references: [id])
+  patientId          String
+  // Fixed, hand-maintained set — see @zaheri/types' HOSPITAL_IDS. Defaults
+  // to Muhimbili so existing rows from before multi-hospital support stay valid.
+  hospitalId         String       @default("muhimbili")
+  registrationNumber String
+  ward               String
+  complaint          String
+  bodyRegion         String
+  urgent             Boolean      @default(false)
+  status             IntakeStatus @default(PENDING)
+
+  // Set by RoutingService.route() — either the red-flag engine auto-routing
+  // on intake submit, or a clinician action from the doctor console.
+  disposition   Disposition?
+  room          String?
+  queueNumber   String?
+  // Raw integer behind queueNumber (from QueueService's Redis counter), kept
+  // solely so "next in the ward's queue" can be ordered numerically —
+  // queueNumber is a display string ("Q-12") and sorts lexically wrong.
+  queueSequence Int?
+
+  // Derived display-only tag: RED when `urgent` (red-flag fired) OR
+  // disposition is URGENT_NOW, GREEN otherwise. Never a new decision —
+  // see routing/triage.ts. Single source of truth; UI never recomputes it.
+  triageTag TriageTag @default(GREEN)
+
+  routedBy   User?     @relation(fields: [routedById], references: [id])
+  routedById String?
+  routedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  labOrders LabOrder[]
+  receipts  PharmacyReceipt[]
+
+  @@index([patientId])
+  @@index([status])
+  @@index([triageTag])
+  @@index([ward, queueSequence])
+}
+
+model LabOrder {
+  id          String         @id @default(uuid())
+  intake      Intake         @relation(fields: [intakeId], references: [id])
+  intakeId    String
+  testName    String
+  orderedBy   User           @relation(fields: [orderedById], references: [id])
+  orderedById String
+  status      LabOrderStatus @default(ORDERED)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  report LabReport?
+
+  @@index([intakeId])
+}
+
+model LabReport {
+  id            String   @id @default(uuid())
+  labOrder      LabOrder @relation(fields: [labOrderId], references: [id])
+  labOrderId    String   @unique
+  resultSummary String
+  reportedAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+}
+
+model PharmacyReceipt {
+  id              String        @id @default(uuid())
+  intake          Intake        @relation(fields: [intakeId], references: [id])
+  intakeId        String
+  // One receipt now covers everything issued in a single visit — one QR,
+  // one signature, one document — rather than a separate receipt (and QR)
+  // per medication.
+  medicationNames String[]
+  issuedBy        User          @relation(fields: [issuedById], references: [id])
+  issuedById      String
+  // HMAC-SHA256(RECEIPT_SIGNING_KEY, id), computed before insert — see
+  // receipts/signature.ts. Verification recomputes and compares this; a
+  // receipt without a valid signature or already REDEEMED is never honoured.
+  signature       String
+  status          ReceiptStatus @default(ISSUED)
+  issuedAt        DateTime      @default(now())
+  redeemedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([intakeId])
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(PATIENT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  routedIntakes  Intake[]
+  orderedLabs    LabOrder[]
+  issuedReceipts PharmacyReceipt[]
+}
