@@ -25,4 +25,7 @@ RUN pnpm --filter @zaheri/api... run build
 
 WORKDIR /repo/apps/api
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+# Render's free tier doesn't support preDeployCommand, so migrations (and
+# the upsert-based seed) run on every container start instead — both are
+# idempotent, so this is safe to repeat on every boot/redeploy.
+CMD ["sh", "-c", "pnpm exec prisma migrate deploy && (pnpm run seed; node dist/main.js)"]

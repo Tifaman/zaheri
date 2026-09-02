@@ -37,11 +37,9 @@ services:
     plan: free
     region: oregon
     healthCheckPath: /health
-    # Runs against the live DB right before traffic switches to the new
-    # deploy. Seed is upsert-based (safe to rerun) — it's what creates the
-    # demo clinician@zaheri.dev / admin@zaheri.dev logins so the console
-    # and analytics dashboard are actually reachable after a fresh deploy.
-    preDeployCommand: pnpm --filter @zaheri/api exec prisma migrate deploy && pnpm --filter @zaheri/api run seed
+    # preDeployCommand isn't available on the free plan — migrations and
+    # the (upsert-based, safe-to-rerun) seed run on container start
+    # instead, see apps/api/Dockerfile's CMD.
     envVars:
       - key: DATABASE_URL
         fromDatabase:
