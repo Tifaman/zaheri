@@ -26,16 +26,22 @@ packages/types  # shared DTO / API types
 
 ## Commands
 
-Update to match the scaffolding once it exists.
-
 ```
-pnpm install
-pnpm --filter api prisma migrate dev
-pnpm --filter api dev
-pnpm --filter web dev
-pnpm test
+pnpm install                              # install deps (workspace root)
+pnpm dev:api                              # NestJS backend — http://localhost:3001
+pnpm dev:web                              # Vite frontend — http://localhost:5173 (visit this one; proxies /api + /socket.io)
+pnpm --filter api exec prisma migrate dev     # create + apply a migration (local/dev)
+pnpm --filter api exec prisma migrate deploy  # apply existing migrations only (prod-safe, no new migration)
+pnpm --filter api run seed                # idempotent seed script
+pnpm build                                # build all workspaces
 pnpm lint
+pnpm typecheck
+pnpm test
 ```
+
+Local Postgres/Redis are optional — `apps/api/.env` can point at either the root
+`docker-compose.yml` containers or hosted equivalents (Neon for Postgres, Redis
+Cloud/Upstash for Redis). See `HOSTING.md` for production deployment (Verpex VPS).
 
 ## Conventions
 

@@ -1,0 +1,9 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: always
+    env_file: apps/api/.env
+    ports:
+      - "127.0.0.1:3000:3000"

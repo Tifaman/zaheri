@@ -8,6 +8,8 @@ coverage
 apps/api/generated
 apps/web/dev-dist
 .DS_Store
+.firebase/
 
 # Claude Code local session state — not project source
 .claude/
+.neon
