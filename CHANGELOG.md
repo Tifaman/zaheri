@@ -5,8 +5,8 @@ All notable changes to ZaHeri are documented here. Format loosely follows
 
 ## [0.1.0] - 2026-09-03
 
-First release. Covers CLAUDE.md build order Phases 0–3, plus analytics from
-Phase 5 (built early).
+First release. Covers build order Phases 0–3, plus analytics from Phase 5
+(built early).
 
 ### Included
 
@@ -15,7 +15,7 @@ Phase 5 (built early).
 - **Auth + doctor console** — role-gated login, case list and review UI.
 - **Routing + red-flag engine** — every non-emergency patient routes to an
   in-person doctor; red flags escalate to the EMD. Red-flag list has clinician
-  sign-off `TODO`s where noted in code — see `CLAUDE.md`'s Guardrails.
+  sign-off `TODO`s where noted in code.
 - **Digital queue** — real-time queue via Socket.IO/BullMQ, notification
   templates (SMS/WhatsApp-ready, provider not yet wired).
 - **Labs + verified pharmacy receipts** — lab ordering, QR-signed receipts
