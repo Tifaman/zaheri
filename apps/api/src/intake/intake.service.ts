@@ -54,7 +54,7 @@ export class IntakeService {
 
     if (flagged) {
       // TODO(Phase 2): replace this log with a real-time staff alert via the
-      // Socket.IO gateway (and SMS/WhatsApp per CLAUDE.md's build order).
+      // Socket.IO gateway (and SMS/WhatsApp notifications).
       this.logger.warn(
         `Red flag fired for intake ${intake.id} (ward ${intake.ward}) — auto-routing to EMD.`,
       );

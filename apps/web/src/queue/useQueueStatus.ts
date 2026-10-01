@@ -19,9 +19,9 @@ function getSocket(): Socket {
 
 /**
  * Subscribes to real-time queue status for one intake. The intake id
- * itself is the subscription capability — there's no patient login (see
- * CLAUDE.md), so anyone with the id (returned only to whoever submitted it)
- * can watch its status, the same trust model as the confirmation screen.
+ * itself is the subscription capability — there's no patient login, so
+ * anyone with the id (returned only to whoever submitted it) can watch its
+ * status, the same trust model as the confirmation screen.
  *
  * Only ever receives PatientQueueStatus — queue number, room, disposition,
  * status. No complaint, body region, urgency, or triage tag ever arrives

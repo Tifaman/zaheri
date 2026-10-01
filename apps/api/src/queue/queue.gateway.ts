@@ -17,9 +17,9 @@ function roomFor(intakeId: string): string {
 }
 
 /**
- * Real-time queue status for the patient PWA. There is no patient login
- * (see CLAUDE.md — patients scan a QR code, they don't authenticate), so the
- * intake id itself — an unguessable UUID returned only to whoever submitted
+ * Real-time queue status for the patient PWA. There is no patient login —
+ * patients scan a QR code, they don't authenticate — so the intake id
+ * itself — an unguessable UUID returned only to whoever submitted
  * it — is the subscription capability, the same trust model already used
  * for the intake id in the confirmation response.
  *

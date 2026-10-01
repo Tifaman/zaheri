@@ -8,8 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   // TODO(deploy): CORS_ORIGIN defaults to '*' (any origin) which is fine for
   // a demo deploy but should be locked down to the real patient-facing
-  // origin(s) before this ever carries real patient data — see CLAUDE.md's
-  // data-protection guardrails.
+  // origin(s) before this ever carries real patient data.
   const corsOrigin = process.env.CORS_ORIGIN ?? '*';
   app.enableCors({ origin: corsOrigin === '*' ? true : corsOrigin.split(',') });
   app.useGlobalPipes(

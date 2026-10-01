@@ -5,8 +5,8 @@ import { IntakeService } from './intake.service';
 
 /**
  * Patient-facing intake submission and status lookup. Deliberately
- * unauthenticated — patients don't log in (see CLAUDE.md); the intake id is
- * the capability. Clinician reads/routing live under /cases
+ * unauthenticated — patients don't log in; the intake id is the capability.
+ * Clinician reads/routing live under /cases
  * (cases.controller.ts), behind JwtAuthGuard + RolesGuard.
  */
 @Controller('intake')

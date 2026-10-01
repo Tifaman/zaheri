@@ -28,8 +28,7 @@ const PENDING_BOTTLENECK_THRESHOLD_MINUTES = 30;
  * Disclosure control: a (date, hospital, bodyRegion) cell with fewer than
  * this many intakes is suppressed entirely rather than returned, so a
  * single unusual case in a quiet ward/day can never be singled out from
- * the aggregate. Standard small-cell suppression threshold; see
- * CLAUDE.md's "Analytics use anonymised, aggregated data only".
+ * the aggregate. Standard small-cell suppression threshold.
  */
 const MIN_CELL_SIZE = 5;
 
